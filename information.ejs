@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Your Information</title>
+  <style>
+    body {
+      margin: 20px;
+      padding: 0;
+      color: #333;
+    }
+
+    h2 {
+      color: darkslategray;
+      text-align: center;
+    }
+
+    .facts,
+    .prediction {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: white;
+      border: 1px solid lightgray;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    strong {
+      font-size: 1rem;
+      color: darkslategrey;
+    }
+
+    #response-message {
+      margin-top: 15px;
+      font-style: italic;
+      color: gray;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      text-decoration: none;
+      color: white;
+      background-color: lightgreen;
+      padding: 10px 15px;
+      border-radius: 4px;
+    }
+
+    a:hover {
+      background-color: greenyellow;
+    }
+
+    hr {
+      margin: 20px auto;
+      width: 80%;
+      border: none;
+      border-top: 1px solid whitesmoke;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Your Facts</h2>
+    <strong>Name: </strong><%- firstName %> <%- lastName %><br>
+        <strong>Email Address: </strong><%- email %><br>
+    <strong>Favorite Game: </strong><br><%- favoriteGame %><br>
+    <strong>Real Age: </strong><%- realAge %><br>
+    <br>
+
+  <h2>Our Prediction</h2>
+    <strong>Your Predicted Age is: </strong><%- predictedAge %><br>
+    <div id="response-message"></div>
+    <hr>
+    <a href="/">Return to Home Page</a>
+
+</body>

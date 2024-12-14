@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Clear Database</title>
+  <style>
+    body {
+      margin: 20px;
+      padding: 0;
+      color: black;
+    }
+
+    h1 {
+      color: darkslategray;
+      text-align: center;
+    }
+
+    p {
+      text-align: center;
+      font-size: 1.2rem;
+      margin: 20px 0;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      margin: 20px auto;
+      text-decoration: none;
+      color: white;
+      background-color: lightgreen;
+      padding: 10px 15px;
+      border-radius: 4px;
+      max-width: 200px;
+    }
+
+    a:hover {
+      background-color: green;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Database Cleared</h1>
+  <p>Successfully deleted <%= deletedCount %> applicant(s) from the database.</p>
+  <a href="/">Return to Home Page</a>
+</body>
+
+</html>
