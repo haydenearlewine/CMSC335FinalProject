@@ -1,36 +1,40 @@
 const express = require('express');
 const path = require("path");
 const app = express();
-
 const axios = require('axios');
 
-require("dotenv").config({ path: path.resolve(__dirname, 'credentials/.env') }) 
+// Load environment variables
+require("dotenv").config({ path: path.resolve(__dirname, 'credentials/.env') }); 
 const uri = process.env.MONGO_CONNECTION_STRING;
-const databaseAndCollection = {db: "CMSC335_DB", collection:"ageGuesser"};
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const databaseAndCollection = { db: "CMSC335_DB", collection: "ageGuesser" };
+const { MongoClient } = require('mongodb');
 
-
+// MongoDB Client
 const client = new MongoClient(uri);
-require('dotenv').config();
 
+// Port configuration
+const PORT = process.env.PORT || 10000;
 
-const PORT = process.env.PORT || 10000; 
-
-app.set("views", path.resolve(__dirname, "templates"));
+// Configure Express to use EJS and serve views from the current directory
+app.set("views", __dirname); // Set current directory as views directory
 app.set("view engine", "ejs");
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname)); // Serve static files from the current directory
 
-app.get("/", (request, response) => {
-    response.render("index");
+// Routes
+app.get("/", (req, res) => {
+    res.render("index");
 });
 
-app.get("/index", (request, response) => {
-    response.render("index");
+app.get("/index", (req, res) => {
+    res.render("index");
 });
 
-app.get("/reviewApplication", (request, response) => {
-    response.render("reviewApplication");
+app.get("/reviewApplication", (req, res) => {
+    res.render("reviewApplication");
 });
 
 app.post("/information", async (req, res) => {
@@ -48,7 +52,7 @@ app.post("/information", async (req, res) => {
             email,
             favoriteGame,
             realAge,
-            predictedAge: predictedAgeFromApi
+            predictedAge: predictedAgeFromApi,
         };
 
         await client.connect();
@@ -64,7 +68,7 @@ app.post("/information", async (req, res) => {
             email: newEntry.email,
             favoriteGame: newEntry.favoriteGame,
             realAge: newEntry.realAge,
-            predictedAge: newEntry.predictedAge
+            predictedAge: newEntry.predictedAge,
         };
 
         res.render("information", variables);
@@ -87,13 +91,13 @@ app.post("/clearDatabase", async (req, res) => {
     } catch (error) {
         console.error("Error clearing database:", error);
     } finally {
-        await client.close(); 
+        await client.close();
     }
 });
 
+// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
 console.log(`PORT environment variable: ${PORT}`);
-
