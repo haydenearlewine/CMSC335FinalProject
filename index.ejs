@@ -1,0 +1,102 @@
+<!doctype <html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Age Predictor</title>
+  <style>
+    body {
+      margin: 20px;
+      padding: 0;
+      background-color: white;
+      color: grey;
+    }
+  
+    h1 {
+      color: darkgray;
+      text-align: center;
+    }
+  
+    form {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid whitesmoke;
+      border-radius: 8px;
+    }
+  
+    label {
+      font-size: 1rem;
+      margin-bottom: 5px;
+      display: block;
+    }
+  
+    input[type="text"],
+    input[type="email"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid gainsboro;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  
+    input[type="submit"],
+    input[type="reset"],
+    button {
+      background-color: lightgreen;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+  
+    input[type="submit"]:hover,
+    input[type="reset"]:hover,
+    button:hover {
+      background-color: greenyellow;
+    }
+  
+    button {
+      display: block;
+      margin: 10px auto;
+    }
+  </style>  
+</head>
+
+<body>
+  <h1>Find Your Predicted Age</h1>
+
+  <form action="/information" method="post">
+    <fieldset>
+      <label for="firstName">First Name:</label>
+      <input type="text" name="firstName" id="firstName" required><br><br>
+
+      <label for="lastName">Last Name:</label>
+      <input type="text" name="lastName" id="lastName" required><br><br>
+
+      <label for="email">Email Address:</label>
+      <input type="email" name="email" id="email" required><br><br>
+
+      <label for="favoriteGame">Favorite Sport/Game:</label>
+      <input type="text" name="favoriteGame" id="favoriteGame" required><br><br>
+
+      <label for="realAge">Your Real Age:</label>
+      <input type="number" step="1" name="realAge" id="realAge" required><br><br>
+    </fieldset>
+
+    <input type="reset" id="reset">
+    <input type="submit" value="Get your predicted age">
+  </form>
+
+  <h1>Clear Database</h1>
+  <form action="/clearDatabase" method="POST">
+    <button type="submit">Clear Database</button>
+  </form>
+
+
+</body>
+</html>
