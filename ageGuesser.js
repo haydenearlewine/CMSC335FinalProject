@@ -14,7 +14,7 @@ const client = new MongoClient(uri);
 require('dotenv').config();
 
 
-const PORT = process.env.PORT || 3000; 
+const PORT = process.env.PORT || 10000; 
 
 app.set("views", path.resolve(__dirname, "templates"));
 app.set("view engine", "ejs");
