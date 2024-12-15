@@ -1,119 +1,50 @@
+// Import required modules
+require('dotenv').config();
 const express = require('express');
-const path = require("path");
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
 const app = express();
 
-const axios = require('axios');
+// Middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-require("dotenv").config({ path: path.resolve(__dirname, 'credentials/.env') }) 
-const uri = process.env.MONGO_CONNECTION_STRING;
-const databaseAndCollection = {db: "CMSC335_DB", collection:"ageGuesser"};
-const { MongoClient, ServerApiVersion } = require('mongodb');
+// Constants
+const PORT = process.env.PORT || 3000; // Render will set PORT
+const MONGODB_URI = process.env.MONGODB_URI;
 
-const client = new MongoClient(uri);
-require('dotenv').config();
+// MongoDB connection
+mongoose
+  .connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+    process.exit(1); // Exit process if the database connection fails
+  });
 
+// Define routes
+app.get('/', (req, res) => {
+  res.send('Welcome to the Age Guesser App!');
+});
 
-const PORT = process.env.PORT || 3000; // Use Render's PORT or default to 3000
+// Example POST endpoint (for testing purposes)
+app.post('/predict-age', (req, res) => {
+  const { name, birthYear } = req.body;
 
+  if (!name || !birthYear) {
+    return res.status(400).send('Missing required fields: name or birthYear');
+  }
+
+  const currentYear = new Date().getFullYear();
+  const predictedAge = currentYear - birthYear;
+
+  res.status(200).json({
+    message: `Hello, ${name}! Based on your birth year, your predicted age is ${predictedAge}.`,
+  });
+});
+
+// Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-
-function promptUser() {
-    process.stdout.write('Stop to shutdown the server: '); 
-    process.stdin.resume();
-}
-
-if (process.argv.length !== 3) {
-    console.error('Usage: node ${process.argv[1]} <port>');
-    process.exit(1);
-}
-
-process.stdin.setEncoding('utf8');
-
-process.stdin.on('readable', () => {
-    const dataInput = process.stdin.read();
-    if (dataInput !== null) {
-        const command = dataInput.trim();
-        if (command === 'stop') {
-            console.log('Shutting down the server');
-            process.exit(0);
-        }
-    }
-});
-
-app.set("views", path.resolve(__dirname, "templates"));
-app.set("view engine", "ejs");
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.get("/", (request, response) => {
-    response.render("index");
-});
-
-app.get("/index", (request, response) => {
-    response.render("index");
-});
-
-app.get("/reviewApplication", (request, response) => {
-    response.render("reviewApplication");
-});
-
-app.post("/information", async (req, res) => {
-    const { firstName, lastName, email, favoriteGame, realAge } = req.body;
-
-    const apiUrl = `https://api.agify.io/?name=${encodeURIComponent(firstName)}`;
-
-    try {
-        const apiResponse = await axios.get(apiUrl);
-        const predictedAgeFromApi = apiResponse.data.age || "Not available";
-
-        const newEntry = {
-            firstName,
-            lastName,
-            email,
-            favoriteGame,
-            realAge,
-            predictedAge: predictedAgeFromApi
-        };
-
-        await client.connect();
-        const result = await client.db(databaseAndCollection.db)
-            .collection(databaseAndCollection.collection)
-            .insertOne(newEntry);
-
-        console.log(`Inserted document with _id: ${result.insertedId}`);
-
-        const variables = {
-            firstName: newEntry.firstName,
-            lastName: newEntry.lastName,
-            email: newEntry.email,
-            favoriteGame: newEntry.favoriteGame,
-            realAge: newEntry.realAge,
-            predictedAge: newEntry.predictedAge
-        };
-
-        res.render("information", variables);
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).send("An error occurred. Please try again.");
-    }
-});
-
-app.post("/clearDatabase", async (req, res) => {
-    try {
-        await client.connect();
-        const result = await client.db(databaseAndCollection.db)
-            .collection(databaseAndCollection.collection)
-            .deleteMany({}); 
-
-        console.log(`Deleted ${result.deletedCount} people from the collection.`);
-
-        res.render("clearDatabase", { deletedCount: result.deletedCount });
-    } catch (error) {
-        console.error("Error clearing database:", error);
-    } finally {
-        await client.close(); 
-    }
+  console.log(`Server is running on port ${PORT}`);
 });
