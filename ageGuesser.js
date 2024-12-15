@@ -9,15 +9,16 @@ const uri = process.env.MONGO_CONNECTION_STRING;
 const databaseAndCollection = {db: "CMSC335_DB", collection:"ageGuesser"};
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
-const port = parseInt(process.argv[2], 10);
 const client = new MongoClient(uri);
 require('dotenv').config();
 
 
-app.listen(port, () => {
-    console.log(`Web server started and running at http://localhost:${port}`);
-    promptUser();
+const PORT = process.env.PORT || 3000; // Use Render's PORT or default to 3000
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
+
 
 function promptUser() {
     process.stdout.write('Stop to shutdown the server: '); 
