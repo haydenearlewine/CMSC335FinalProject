@@ -1,77 +1,92 @@
-require('dotenv').config(); 
 const express = require('express');
-const { MongoClient } = require('mongodb');
-
+const path = require("path");
 const app = express();
 
+const axios = require('axios');
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+require("dotenv").config({ path: path.resolve(__dirname, 'credentials/.env') }) 
+const uri = process.env.MONGO_CONNECTION_STRING;
+const databaseAndCollection = {db: "CMSC335_DB", collection:"ageGuesser"};
+const { MongoClient, ServerApiVersion } = require('mongodb');
+
+
+const client = new MongoClient(uri);
+require('dotenv').config();
 
 
 const PORT = process.env.PORT || 3000; 
-const MONGO_URI = process.env.MONGO_CONNECTION_STRING;
 
+app.set("views", path.resolve(__dirname, "templates"));
+app.set("view engine", "ejs");
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const client = new MongoClient(MONGO_URI);
-let db; 
-
-async function connectDB() {
-  try {
-    await client.connect();
-    db = client.db(); 
-    console.log('Connected to MongoDB');
-  } catch (err) {
-    console.error('Error connecting to MongoDB:', err);
-    process.exit(1); 
-  }
-}
-
-
-app.get('/', (req, res) => {
-  res.send('Welcome to the Age Guesser App!');
+app.get("/", (request, response) => {
+    response.render("index");
 });
 
-
-app.get('/users', async (req, res) => {
-  try {
-    const users = await db.collection('users').find().toArray();
-    res.json(users);
-  } catch (err) {
-    console.error('Error fetching users:', err);
-    res.status(500).send('Error fetching users');
-  }
+app.get("/index", (request, response) => {
+    response.render("index");
 });
 
-
-app.post('/users', async (req, res) => {
-  try {
-    const user = req.body; 
-    const result = await db.collection('users').insertOne(user);
-    res.status(201).json({ message: 'User added', id: result.insertedId });
-  } catch (err) {
-    console.error('Error adding user:', err);
-    res.status(500).send('Error adding user');
-  }
+app.get("/reviewApplication", (request, response) => {
+    response.render("reviewApplication");
 });
 
-app.post('/predict-age', (req, res) => {
-  try {
-    const { name, birthYear } = req.body;
-    if (!name || !birthYear) {
-      return res.status(400).send('Missing required fields: name or birthYear');
+app.post("/information", async (req, res) => {
+    const { firstName, lastName, email, favoriteGame, realAge } = req.body;
+
+    const apiUrl = `https://api.agify.io/?name=${encodeURIComponent(firstName)}`;
+
+    try {
+        const apiResponse = await axios.get(apiUrl);
+        const predictedAgeFromApi = apiResponse.data.age || "Not available";
+
+        const newEntry = {
+            firstName,
+            lastName,
+            email,
+            favoriteGame,
+            realAge,
+            predictedAge: predictedAgeFromApi
+        };
+
+        await client.connect();
+        const result = await client.db(databaseAndCollection.db)
+            .collection(databaseAndCollection.collection)
+            .insertOne(newEntry);
+
+        console.log(`Inserted document with _id: ${result.insertedId}`);
+
+        const variables = {
+            firstName: newEntry.firstName,
+            lastName: newEntry.lastName,
+            email: newEntry.email,
+            favoriteGame: newEntry.favoriteGame,
+            realAge: newEntry.realAge,
+            predictedAge: newEntry.predictedAge
+        };
+
+        res.render("information", variables);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).send("An error occurred. Please try again.");
     }
-    const currentYear = new Date().getFullYear();
-    const predictedAge = currentYear - birthYear;
-    res.json({ name, predictedAge });
-  } catch (err) {
-    console.error('Error predicting age:', err);
-    res.status(500).send('Error predicting age');
-  }
 });
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+app.post("/clearDatabase", async (req, res) => {
+    try {
+        await client.connect();
+        const result = await client.db(databaseAndCollection.db)
+            .collection(databaseAndCollection.collection)
+            .deleteMany({}); 
+
+        console.log(`Deleted ${result.deletedCount} people from the collection.`);
+
+        res.render("clearDatabase", { deletedCount: result.deletedCount });
+    } catch (error) {
+        console.error("Error clearing database:", error);
+    } finally {
+        await client.close(); 
+    }
 });
