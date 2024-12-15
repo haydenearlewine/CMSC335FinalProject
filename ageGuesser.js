@@ -1,50 +1,77 @@
-// Import required modules
-require('dotenv').config();
+require('dotenv').config(); 
 const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 
-// Middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
-// Constants
-const PORT = process.env.PORT || 3000; // Render will set PORT
-const MONGODB_URI = process.env.MONGODB_URI;
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
-mongoose
-  .connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => {
+
+const PORT = process.env.PORT || 3000; 
+const MONGO_URI = process.env.MONGO_CONNECTION_STRING;
+
+
+const client = new MongoClient(MONGO_URI);
+let db; 
+
+async function connectDB() {
+  try {
+    await client.connect();
+    db = client.db(); 
+    console.log('Connected to MongoDB');
+  } catch (err) {
     console.error('Error connecting to MongoDB:', err);
-    process.exit(1); // Exit process if the database connection fails
-  });
+    process.exit(1); 
+  }
+}
 
-// Define routes
+
 app.get('/', (req, res) => {
   res.send('Welcome to the Age Guesser App!');
 });
 
-// Example POST endpoint (for testing purposes)
-app.post('/predict-age', (req, res) => {
-  const { name, birthYear } = req.body;
 
-  if (!name || !birthYear) {
-    return res.status(400).send('Missing required fields: name or birthYear');
+app.get('/users', async (req, res) => {
+  try {
+    const users = await db.collection('users').find().toArray();
+    res.json(users);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).send('Error fetching users');
   }
-
-  const currentYear = new Date().getFullYear();
-  const predictedAge = currentYear - birthYear;
-
-  res.status(200).json({
-    message: `Hello, ${name}! Based on your birth year, your predicted age is ${predictedAge}.`,
-  });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
+app.post('/users', async (req, res) => {
+  try {
+    const user = req.body; 
+    const result = await db.collection('users').insertOne(user);
+    res.status(201).json({ message: 'User added', id: result.insertedId });
+  } catch (err) {
+    console.error('Error adding user:', err);
+    res.status(500).send('Error adding user');
+  }
+});
+
+app.post('/predict-age', (req, res) => {
+  try {
+    const { name, birthYear } = req.body;
+    if (!name || !birthYear) {
+      return res.status(400).send('Missing required fields: name or birthYear');
+    }
+    const currentYear = new Date().getFullYear();
+    const predictedAge = currentYear - birthYear;
+    res.json({ name, predictedAge });
+  } catch (err) {
+    console.error('Error predicting age:', err);
+    res.status(500).send('Error predicting age');
+  }
+});
+
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
