@@ -90,3 +90,10 @@ app.post("/clearDatabase", async (req, res) => {
         await client.close(); 
     }
 });
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+console.log(`PORT environment variable: ${PORT}`);
+
